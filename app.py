@@ -1,3 +1,6 @@
+# app.py (SALVAR EM UTF-8)
+
+```python
 import streamlit as st
 import pandas as pd
 import plotly.express as px
@@ -12,13 +15,31 @@ st.set_page_config(
     layout="wide"
 )
 
-st.title("⛽ Dashboard de Combustíveis - ANP")
+st.title("Dashboard de Combustíveis - ANP")
 
 st.markdown("""
-Dashboard interativo desenvolvido por Raphael Pires usando Python + Streamlit.
+## Contexto do Projeto
 
-Dados públicos da ANP sobre movimentação de combustíveis.
+Este dashboard foi desenvolvido para analisar dados públicos da ANP sobre movimentação de combustíveis em terminais aquaviários brasileiros.
+
+O objetivo do projeto é transformar dados brutos em informações visuais capazes de apoiar análises estratégicas sobre distribuição, volume movimentado e concentração regional do setor de combustíveis.
+
+Além da análise exploratória, o projeto demonstra competências em:
+
+- Tratamento de dados com Pandas
+- Visualização de dados com Plotly
+- Desenvolvimento de aplicações com Streamlit
+- Deploy em nuvem
+- Data Storytelling
 """)
+
+st.markdown(
+    """
+    Dashboard interativo desenvolvido por Raphael Pires usando Python + Streamlit.
+
+    Dados públicos da ANP sobre movimentação de combustíveis.
+    """
+)
 
 # ---------------------------------------------------
 # CARREGAMENTO DOS DADOS
@@ -29,12 +50,13 @@ def carregar_dados():
 
     url = "https://docs.google.com/spreadsheets/d/1NfAnK7mtfJhasc3vVPhMlPvfuF_OT6OrshFwRBZcNyA/export?format=csv"
 
+    # Tentar diferentes encodings
     try:
         df = pd.read_csv(url, encoding="latin1")
     except:
         df = pd.read_csv(url, encoding="cp1252")
 
-    # Padronizar nomes das colunas
+    # Padronizar colunas
     df.columns = df.columns.str.strip().str.lower()
 
     return df
@@ -63,15 +85,12 @@ try:
 
         nome = col.lower()
 
-        # Procurar coluna de ano
         if "ano" in nome:
             coluna_ano = col
 
-        # Procurar UF
         if nome == "uf" or "estado" in nome:
             coluna_uf = col
 
-        # Procurar volume
         if "volume" in nome:
             coluna_volume = col
 
@@ -107,7 +126,7 @@ try:
         errors="coerce"
     )
 
-    # Remover linhas inválidas
+    # Remover linhas invalidas
     df = df.dropna(subset=[coluna_volume])
 
     # ---------------------------------------------------
@@ -154,14 +173,12 @@ try:
     st.markdown("---")
 
     # ---------------------------------------------------
-    # GRÁFICOS
+    # GRAFICOS
     # ---------------------------------------------------
 
     col1, col2 = st.columns(2)
 
-    # ---------------------------------------------------
-    # GRÁFICO 1
-    # ---------------------------------------------------
+    # GRAFICO 1
 
     with col1:
 
@@ -186,9 +203,7 @@ try:
             use_container_width=True
         )
 
-    # ---------------------------------------------------
-    # GRÁFICO 2
-    # ---------------------------------------------------
+    # GRAFICO 2
 
     with col2:
 
@@ -232,19 +247,33 @@ try:
         use_container_width=True
     )
 
-# ---------------------------------------------------
-# TRATAMENTO DE ERROS
-# ---------------------------------------------------
-
 except Exception as e:
 
     st.error(f"Erro ao carregar os dados: {e}")
 
-    st.info("""
-Possiveis causas:
+    st.info(
+        """
+        Possiveis causas:
 
-- Problema de encoding
-- Nome das colunas diferente
-- Planilha privada
-- Erro de leitura do Google Sheets
-""")
+        - Problema de encoding
+        - Nome das colunas diferente
+        - Planilha privada
+        - Erro de leitura do Google Sheets
+        """
+    )
+```
+
+# IMPORTANTE
+
+Depois de colar esse código no VSCode:
+
+1. Vá no canto inferior direito
+2. Clique no encoding
+3. Escolha:
+
+Save with Encoding → UTF-8
+
+4. Salve o arquivo
+5. Suba novamente no GitHub
+
+Porque programação moderna aparentemente depende de convencer um editor de texto a salvar letras corretamente. Uma conquista impressionante da humanidade.
