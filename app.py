@@ -1,24 +1,29 @@
+# app.py (SALVAR EM UTF-8)
+
+```python
 import streamlit as st
 import pandas as pd
 import plotly.express as px
 
 # ---------------------------------------------------
-# CONFIGURA«√O DA P¡GINA
+# CONFIGURA√á√ÉO DA P√ÅGINA
 # ---------------------------------------------------
 
 st.set_page_config(
     page_title="Dashboard ANP",
-    page_icon="?",
+    page_icon="‚õΩ",
     layout="wide"
 )
 
-st.title("? Dashboard de CombustÌveis - ANP")
+st.title("Dashboard de Combust√≠veis - ANP")
 
-st.markdown("""
-Dashboard interativo desenvolvido por **Raphael Pires** usando Python + Streamlit.
+st.markdown(
+    """
+    Dashboard interativo desenvolvido por Raphael Pires usando Python + Streamlit.
 
-Dados p˙blicos da ANP sobre movimentaÁ„o de combustÌveis em terminais aquavi·rios.
-""")
+    Dados p√∫blicos da ANP sobre movimenta√ß√£o de combust√≠veis.
+    """
+)
 
 # ---------------------------------------------------
 # CARREGAMENTO DOS DADOS
@@ -29,32 +34,31 @@ def carregar_dados():
 
     url = "https://docs.google.com/spreadsheets/d/1NfAnK7mtfJhasc3vVPhMlPvfuF_OT6OrshFwRBZcNyA/export?format=csv"
 
-    # IMPORTANTE:
-    # encoding latin1 resolve problema do « e caracteres brasileiros
-    df = pd.read_csv(url, encoding="latin1")
+    # Tentar diferentes encodings
+    try:
+        df = pd.read_csv(url, encoding="latin1")
+    except:
+        df = pd.read_csv(url, encoding="cp1252")
 
-    # Padronizar nomes das colunas
+    # Padronizar colunas
     df.columns = df.columns.str.strip().str.lower()
 
     return df
 
 # ---------------------------------------------------
-# EXECU«√O PRINCIPAL
+# EXECU√á√ÉO PRINCIPAL
 # ---------------------------------------------------
 
 try:
 
     df = carregar_dados()
 
-    # ---------------------------------------------------
-    # DEBUG DAS COLUNAS
-    # ---------------------------------------------------
-
-    st.sidebar.subheader("?? Colunas Encontradas")
+    # Mostrar colunas encontradas
+    st.sidebar.subheader("Colunas Encontradas")
     st.sidebar.write(df.columns.tolist())
 
     # ---------------------------------------------------
-    # DETEC«√O AUTOM¡TICA DAS COLUNAS
+    # IDENTIFICA√á√ÉO AUTOM√ÅTICA DAS COLUNAS
     # ---------------------------------------------------
 
     coluna_ano = None
@@ -63,34 +67,31 @@ try:
 
     for col in df.columns:
 
-        col_lower = col.lower()
+        nome = col.lower()
 
-        # Procurar coluna de ano
-        if "ano" in col_lower:
+        if "ano" in nome:
             coluna_ano = col
 
-        # Procurar UF
-        if col_lower == "uf" or "estado" in col_lower:
+        if nome == "uf" or "estado" in nome:
             coluna_uf = col
 
-        # Procurar volume
-        if "volume" in col_lower:
+        if "volume" in nome:
             coluna_volume = col
 
     # ---------------------------------------------------
-    # VALIDA«√O
+    # VALIDA√á√ïES
     # ---------------------------------------------------
 
     if coluna_ano is None:
-        st.error("? N„o foi encontrada coluna de ANO.")
+        st.error("Nao foi encontrada coluna de ANO")
         st.stop()
 
     if coluna_uf is None:
-        st.error("? N„o foi encontrada coluna de UF/Estado.")
+        st.error("Nao foi encontrada coluna de UF")
         st.stop()
 
     if coluna_volume is None:
-        st.error("? N„o foi encontrada coluna de VOLUME.")
+        st.error("Nao foi encontrada coluna de VOLUME")
         st.stop()
 
     # ---------------------------------------------------
@@ -109,14 +110,14 @@ try:
         errors="coerce"
     )
 
-    # Remover linhas inv·lidas
+    # Remover linhas invalidas
     df = df.dropna(subset=[coluna_volume])
 
     # ---------------------------------------------------
-    # SIDEBAR / FILTROS
+    # FILTROS
     # ---------------------------------------------------
 
-    st.sidebar.header("?? Filtros")
+    st.sidebar.header("Filtros")
 
     anos = sorted(df[coluna_ano].dropna().unique())
 
@@ -136,19 +137,19 @@ try:
     total_estados = df_filtrado[coluna_uf].nunique()
     total_registros = len(df_filtrado)
 
-    col_kpi1, col_kpi2, col_kpi3 = st.columns(3)
+    kpi1, kpi2, kpi3 = st.columns(3)
 
-    col_kpi1.metric(
+    kpi1.metric(
         "Volume Total",
-        f"{total_volume:,.0f} m≥"
+        f"{total_volume:,.0f}"
     )
 
-    col_kpi2.metric(
+    kpi2.metric(
         "Estados",
         total_estados
     )
 
-    col_kpi3.metric(
+    kpi3.metric(
         "Registros",
         f"{total_registros:,}"
     )
@@ -156,18 +157,16 @@ try:
     st.markdown("---")
 
     # ---------------------------------------------------
-    # GR¡FICOS
+    # GRAFICOS
     # ---------------------------------------------------
 
     col1, col2 = st.columns(2)
 
-    # ---------------------------------------------------
-    # GR¡FICO 1 - VOLUME POR ANO
-    # ---------------------------------------------------
+    # GRAFICO 1
 
     with col1:
 
-        st.subheader("?? Volume por Ano")
+        st.subheader("Volume por Ano")
 
         df_ano = (
             df_filtrado
@@ -188,13 +187,11 @@ try:
             use_container_width=True
         )
 
-    # ---------------------------------------------------
-    # GR¡FICO 2 - TOP 10 ESTADOS
-    # ---------------------------------------------------
+    # GRAFICO 2
 
     with col2:
 
-        st.subheader("??? Top 10 Estados")
+        st.subheader("Top 10 Estados")
 
         df_uf = (
             df_filtrado
@@ -227,28 +224,40 @@ try:
 
     st.markdown("---")
 
-    st.subheader("?? Dados Detalhados")
+    st.subheader("Dados Detalhados")
 
     st.dataframe(
         df_filtrado.head(100),
         use_container_width=True
     )
 
-# ---------------------------------------------------
-# TRATAMENTO DE ERROS
-# ---------------------------------------------------
-
 except Exception as e:
 
-    st.error(f"? Erro ao carregar os dados: {e}")
+    st.error(f"Erro ao carregar os dados: {e}")
 
-    st.info("""
-PossÌveis causas:
+    st.info(
+        """
+        Possiveis causas:
 
-- Problema de encoding
-- Nome das colunas diferente
-- Planilha privada
-- Erro de leitura do Google Sheets
+        - Problema de encoding
+        - Nome das colunas diferente
+        - Planilha privada
+        - Erro de leitura do Google Sheets
+        """
+    )
+```
 
-Porque dados p˙blicos brasileiros nunca desperdiÁam uma chance de testar nossa sanidade mental.
-""")
+# IMPORTANTE
+
+Depois de colar esse c√≥digo no VSCode:
+
+1. V√° no canto inferior direito
+2. Clique no encoding
+3. Escolha:
+
+Save with Encoding ‚Üí UTF-8
+
+4. Salve o arquivo
+5. Suba novamente no GitHub
+
+Porque programa√ß√£o moderna aparentemente depende de convencer um editor de texto a salvar letras corretamente. Uma conquista impressionante da humanidade.
