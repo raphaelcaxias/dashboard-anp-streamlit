@@ -13,13 +13,12 @@ st.set_page_config(
 )
 
 st.title("? Dashboard de Combustíveis - ANP")
-st.markdown(
-    """
-    Dashboard interativo desenvolvido por **Raphael Pires** usando Python + Streamlit.
-    
-    Dados públicos da ANP sobre movimentação de combustíveis em terminais aquaviários.
-    """
-)
+
+st.markdown("""
+Dashboard interativo desenvolvido por **Raphael Pires** usando Python + Streamlit.
+
+Dados públicos da ANP sobre movimentação de combustíveis em terminais aquaviários.
+""")
 
 # ---------------------------------------------------
 # CARREGAMENTO DOS DADOS
@@ -30,7 +29,9 @@ def carregar_dados():
 
     url = "https://docs.google.com/spreadsheets/d/1NfAnK7mtfJhasc3vVPhMlPvfuF_OT6OrshFwRBZcNyA/export?format=csv"
 
-    df = pd.read_csv(url)
+    # IMPORTANTE:
+    # encoding latin1 resolve problema do Ç e caracteres brasileiros
+    df = pd.read_csv(url, encoding="latin1")
 
     # Padronizar nomes das colunas
     df.columns = df.columns.str.strip().str.lower()
@@ -38,51 +39,58 @@ def carregar_dados():
     return df
 
 # ---------------------------------------------------
-# TENTAR CARREGAR
+# EXECUÇÃO PRINCIPAL
 # ---------------------------------------------------
 
 try:
 
     df = carregar_dados()
 
-    # DEBUG TEMPORÁRIO
-    st.sidebar.subheader("Colunas Encontradas")
+    # ---------------------------------------------------
+    # DEBUG DAS COLUNAS
+    # ---------------------------------------------------
+
+    st.sidebar.subheader("?? Colunas Encontradas")
     st.sidebar.write(df.columns.tolist())
 
     # ---------------------------------------------------
-    # AJUSTE AUTOMÁTICO DAS COLUNAS
+    # DETECÇÃO AUTOMÁTICA DAS COLUNAS
     # ---------------------------------------------------
 
-    # Tenta identificar colunas automaticamente
     coluna_ano = None
     coluna_uf = None
     coluna_volume = None
 
     for col in df.columns:
 
-        if "ano" in col:
+        col_lower = col.lower()
+
+        # Procurar coluna de ano
+        if "ano" in col_lower:
             coluna_ano = col
 
-        if col == "uf" or "estado" in col:
+        # Procurar UF
+        if col_lower == "uf" or "estado" in col_lower:
             coluna_uf = col
 
-        if "volume" in col:
+        # Procurar volume
+        if "volume" in col_lower:
             coluna_volume = col
 
     # ---------------------------------------------------
-    # VALIDAR
+    # VALIDAÇÃO
     # ---------------------------------------------------
 
-    if not coluna_ano:
-        st.error("Não encontrei coluna de ANO.")
+    if coluna_ano is None:
+        st.error("? Não foi encontrada coluna de ANO.")
         st.stop()
 
-    if not coluna_uf:
-        st.error("Não encontrei coluna de UF/Estado.")
+    if coluna_uf is None:
+        st.error("? Não foi encontrada coluna de UF/Estado.")
         st.stop()
 
-    if not coluna_volume:
-        st.error("Não encontrei coluna de VOLUME.")
+    if coluna_volume is None:
+        st.error("? Não foi encontrada coluna de VOLUME.")
         st.stop()
 
     # ---------------------------------------------------
@@ -105,7 +113,7 @@ try:
     df = df.dropna(subset=[coluna_volume])
 
     # ---------------------------------------------------
-    # FILTRO DE ANOS
+    # SIDEBAR / FILTROS
     # ---------------------------------------------------
 
     st.sidebar.header("?? Filtros")
@@ -114,7 +122,7 @@ try:
 
     anos_selecionados = st.sidebar.multiselect(
         "Selecione os anos",
-        anos,
+        options=anos,
         default=anos
     )
 
@@ -128,19 +136,19 @@ try:
     total_estados = df_filtrado[coluna_uf].nunique()
     total_registros = len(df_filtrado)
 
-    kpi1, kpi2, kpi3 = st.columns(3)
+    col_kpi1, col_kpi2, col_kpi3 = st.columns(3)
 
-    kpi1.metric(
+    col_kpi1.metric(
         "Volume Total",
         f"{total_volume:,.0f} m³"
     )
 
-    kpi2.metric(
+    col_kpi2.metric(
         "Estados",
         total_estados
     )
 
-    kpi3.metric(
+    col_kpi3.metric(
         "Registros",
         f"{total_registros:,}"
     )
@@ -153,9 +161,9 @@ try:
 
     col1, col2 = st.columns(2)
 
-    # -----------------------------------
-    # VOLUME POR ANO
-    # -----------------------------------
+    # ---------------------------------------------------
+    # GRÁFICO 1 - VOLUME POR ANO
+    # ---------------------------------------------------
 
     with col1:
 
@@ -180,9 +188,9 @@ try:
             use_container_width=True
         )
 
-    # -----------------------------------
-    # TOP 10 ESTADOS
-    # -----------------------------------
+    # ---------------------------------------------------
+    # GRÁFICO 2 - TOP 10 ESTADOS
+    # ---------------------------------------------------
 
     with col2:
 
@@ -226,19 +234,21 @@ try:
         use_container_width=True
     )
 
+# ---------------------------------------------------
+# TRATAMENTO DE ERROS
+# ---------------------------------------------------
+
 except Exception as e:
 
-    st.error(f"Erro ao carregar os dados: {e}")
+    st.error(f"? Erro ao carregar os dados: {e}")
 
-    st.info(
-        """
-        Possíveis causas:
-        
-        - Planilha não está pública
-        - Nome das colunas mudou
-        - Problema de formatação
-        - Google Sheets demorou responder
-        
-        Porque dados públicos brasileiros nunca perdem a chance de testar nossa sanidade.
-        """
-    )
+    st.info("""
+Possíveis causas:
+
+- Problema de encoding
+- Nome das colunas diferente
+- Planilha privada
+- Erro de leitura do Google Sheets
+
+Porque dados públicos brasileiros nunca desperdiçam uma chance de testar nossa sanidade mental.
+""")
